@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: transparent;
+            color: white;
+        }
+
+        .container {
+            margin: 0px auto;
+            font-family: Arial, sans-serif;
+        }
+
+        .progress-wrapper {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-container {
+            flex-grow: 1;
+            background: transparent;
+            border: 3px solid white;
+            height: 36px;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+            border-radius: 6px;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 0;
+            height: 70%;
+            background: white;
+            transition: width 0.5s ease;
+            margin-left: 5px;
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .progress-label {
+            white-space: nowrap;
+            font-size: 14px;
+            width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="progress-bars"></div>
+
+    <script>
+        function getYearPercentage() {
+            const now = new Date();
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+            const endOfYear = new Date(now.getFullYear() + 1, 0, 1);
+            return ((now - startOfYear) / (endOfYear - startOfYear)) * 100;
+        }
+
+        function getQuarterPercentage() {
+            const now = new Date();
+            const quarter = Math.floor(now.getMonth() / 3);
+            const startOfQuarter = new Date(now.getFullYear(), quarter * 3, 1);
+            const endOfQuarter = new Date(now.getFullYear(), (quarter + 1) * 3, 1);
+            return ((now - startOfQuarter) / (endOfQuarter - startOfQuarter)) * 100;
+        }
+
+        function getMonthPercentage() {
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            return ((now - startOfMonth) / (endOfMonth - startOfMonth)) * 100;
+        }
+
+        function getWeekPercentage() {
+            const now = new Date();
+            const startOfWeek = new Date(now);
+            const day = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+            const diff = day === 0 ? -6 : 1 - day; // Adjust to previous Monday
+            startOfWeek.setDate(now.getDate() + diff);
+            startOfWeek.setHours(0, 0, 0, 0);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 7);
+            return ((now - startOfWeek) / (endOfWeek - startOfWeek)) * 100;
+        }
+
+        function getDayPercentage() {
+            const now = new Date();
+            const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const endOfDay = new Date(startOfDay.getTime() + 86400000);
+            return ((now - startOfDay) / (endOfDay - startOfDay)) * 100;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('progress-bars');
+            const timeCalculators = [
+                { label: 'Year', calc: getYearPercentage },
+                { label: 'Month', calc: getMonthPercentage },
+                { label: 'Week', calc: getWeekPercentage },
+                { label: 'Day', calc: getDayPercentage },
+                { label: 'Quarter', calc: getQuarterPercentage }
+            ];
+
+            const progressBars = [];
+
+            timeCalculators.forEach(({ label, calc }) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'progress-wrapper';
+
+                const progressContainer = document.createElement('div');
+                progressContainer.className = 'progress-container';
+
+                const progressFill = document.createElement('div');
+                progressFill.className = 'progress-fill';
+
+                const progressLabel = document.createElement('div');
+                progressLabel.className = 'progress-label';
+
+                progressContainer.appendChild(progressFill);
+                wrapper.appendChild(progressContainer);
+                wrapper.appendChild(progressLabel);
+                container.appendChild(wrapper);
+
+                progressBars.push({ label, progressFill, progressLabel, calc });
+            });
+
+            function updateProgressBars() {
+                progressBars.forEach(({ label, progressFill, progressLabel, calc }) => {
+                    const percentage = calc();
+                    const rounded = percentage.toFixed(1);
+                    progressLabel.textContent = `${label}: ${rounded}%`;
+                    progressFill.style.width = `${percentage}%`;
+                });
+            }
+
+            updateProgressBars();
+            setInterval(updateProgressBars, 1000);
+        });
+    </script>
+</body>
+</html>
